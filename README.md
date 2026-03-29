@@ -35,14 +35,7 @@ The platform enables retailers to quickly list flash deals and allows customers 
 
 ---
 
-## 🛠️ Tech Stack
-- **Frontend**: React / Flutter  
-- **Backend**: Node.js / Firebase  
-- **Database**: MongoDB / Firestore  
-- **Maps Integration**: Google Maps API  
-- **Authentication**: Firebase Auth / JWT  
 
----
 
 ## 🌱 Impact
 - 📉 Reduces product wastage (especially food & perishables)
