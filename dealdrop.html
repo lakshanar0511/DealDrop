@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DealDrop AI – Hyperlocal Flash Sales</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand:#00C896;--brand-dark:#00A37A;--brand-light:#E0FFF6;
+  --red:#FF4757;--amber:#FFA502;--green:#2ED573;
+  --bg:#0A0E1A;--surface:#111827;--surface2:#1A2235;--surface3:#212D42;
+  --text:#F1F5F9;--text2:#94A3B8;--text3:#64748B;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --font-head:'Space Grotesk',sans-serif;--font-body:'DM Sans',sans-serif;
+  --radius:12px;--radius-lg:18px;--radius-xl:24px;
+  --shadow:0 4px 24px rgba(0,0,0,0.4);
+}
+html,body{height:100%;background:var(--bg);font-family:var(--font-body);color:var(--text);overflow-x:hidden}
+
+/* ── LAYOUT ── */
+.app-shell{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;background:var(--bg);position:relative;overflow:hidden}
+.screen{display:none;flex:1;overflow-y:auto;overflow-x:hidden}
+.screen.active{display:flex;flex-direction:column}
+
+/* ── NAV BAR ── */
+.bottom-nav{display:flex;background:var(--surface);border-top:1px solid var(--border);padding:8px 0 12px;position:relative;z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:6px 4px;border:none;background:none;color:var(--text3);font-family:var(--font-body);font-size:10px;font-weight:500;letter-spacing:0.3px;transition:color 0.2s}
+.nav-item svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;transition:all 0.2s}
+.nav-item.active{color:var(--brand)}
+.nav-item.active svg{stroke:var(--brand)}
+.nav-badge{position:absolute;top:-2px;right:8px;background:var(--red);color:#fff;font-size:9px;font-weight:600;padding:1px 5px;border-radius:10px;font-family:var(--font-head)}
+
+/* ── AUTH SCREENS ── */
+.auth-bg{min-height:100vh;background:var(--bg);display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden}
+.auth-map-mockup{position:absolute;inset:0;background:var(--surface);overflow:hidden}
+.auth-map-mockup::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(255,255,255,0.02) 40px,rgba(255,255,255,0.02) 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(255,255,255,0.02) 40px,rgba(255,255,255,0.02) 41px)}
+.splash-pin{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:3px solid var(--bg);animation:pinPulse 2s ease-in-out infinite}
+@keyframes pinPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.auth-card{background:var(--surface);border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:32px 24px 40px;border-top:1px solid var(--border);position:relative;z-index:10}
+.auth-logo{font-family:var(--font-head);font-size:26px;font-weight:700;color:var(--text);margin-bottom:4px}
+.auth-logo span{color:var(--brand)}
+.auth-sub{font-size:14px;color:var(--text2);margin-bottom:28px}
+.tab-row{display:flex;background:var(--surface2);border-radius:var(--radius);padding:4px;margin-bottom:24px}
+.tab-btn{flex:1;padding:9px;border-radius:9px;border:none;background:none;font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer;color:var(--text2);transition:all 0.2s}
+.tab-btn.active{background:var(--brand);color:#fff}
+.form-group{margin-bottom:16px}
+.form-label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px}
+.form-input{width:100%;padding:12px 16px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:var(--font-body);font-size:15px;outline:none;transition:border-color 0.2s}
+.form-input:focus{border-color:var(--brand)}
+.form-input::placeholder{color:var(--text3)}
+.role-select{display:flex;gap:10px;margin-bottom:20px}
+.role-btn{flex:1;padding:12px 8px;border:1.5px solid var(--border2);border-radius:var(--radius);background:none;color:var(--text2);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all 0.2s}
+.role-btn.active{border-color:var(--brand);color:var(--brand);background:rgba(0,200,150,0.08)}
+.role-icon{font-size:22px}
+.btn-primary{width:100%;padding:15px;background:var(--brand);color:#fff;border:none;border-radius:var(--radius);font-family:var(--font-head);font-size:16px;font-weight:600;cursor:pointer;letter-spacing:0.3px;transition:all 0.2s;margin-top:4px}
+.btn-primary:hover{background:var(--brand-dark);transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(0)}
+.auth-divider{text-align:center;color:var(--text3);font-size:13px;margin:16px 0;position:relative}
+.auth-divider::before,.auth-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border)}
+.auth-divider::before{left:0}.auth-divider::after{right:0}
+.btn-outline{width:100%;padding:13px;background:none;color:var(--text2);border:1px solid var(--border2);border-radius:var(--radius);font-family:var(--font-body);font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s}
+.btn-outline:hover{border-color:var(--text2);color:var(--text)}
+
+/* ── MAP SCREEN ── */
+.map-header{padding:16px 16px 8px;background:var(--surface);border-bottom:1px solid var(--border)}
+.map-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.loc-pill{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:500;color:var(--text);cursor:pointer}
+.loc-dot{width:8px;height:8px;background:var(--brand);border-radius:50%;animation:blink 1.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.notif-btn{width:36px;height:36px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
+.notif-btn .dot{position:absolute;top:6px;right:7px;width:7px;height:7px;background:var(--red);border-radius:50%;border:1.5px solid var(--surface)}
+.filter-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.filter-scroll::-webkit-scrollbar{display:none}
+.chip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;white-space:nowrap;transition:all 0.2s}
+.chip.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+.map-canvas{position:relative;height:280px;background:var(--surface2);overflow:hidden;flex-shrink:0}
+.map-road-h{position:absolute;background:rgba(255,255,255,0.06);height:2px;left:0;right:0}
+.map-road-v{position:absolute;background:rgba(255,255,255,0.06);width:2px;top:0;bottom:0}
+.map-block{position:absolute;background:rgba(255,255,255,0.03);border-radius:4px}
+.map-pin{position:absolute;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;border:3px solid var(--bg);box-shadow:var(--shadow);transition:transform 0.2s;z-index:5}
+.map-pin:hover{transform:scale(1.15) translateY(-3px)}
+.map-pin.red{background:var(--red)}
+.map-pin.green{background:#1A7A4A}
+.map-pin.amber{background:#B37400}
+.pin-tooltip{position:absolute;bottom:-26px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--brand);white-space:nowrap;font-family:var(--font-head)}
+.you-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10}
+.you-core{width:16px;height:16px;background:#3B82F6;border-radius:50%;border:3px solid #fff;position:relative;z-index:2}
+.you-ring{width:40px;height:40px;background:rgba(59,130,246,0.15);border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);animation:ripple 2s ease-out infinite}
+@keyframes ripple{0%{transform:translate(-50%,-50%) scale(0.8);opacity:1}100%{transform:translate(-50%,-50%) scale(2);opacity:0}}
+.map-legend{position:absolute;bottom:12px;right:12px;background:rgba(17,24,39,0.9);border:1px solid var(--border);border-radius:10px;padding:8px 12px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text2);margin-bottom:4px}
+.legend-item:last-child{margin:0}
+.legend-dot{width:8px;height:8px;border-radius:50%}
+.nearby-header{padding:14px 16px 4px;display:flex;align-items:center;justify-content:space-between}
+.nearby-header h3{font-family:var(--font-head);font-size:15px;font-weight:600;color:var(--text)}
+.see-all{font-size:12px;color:var(--brand);font-weight:500;cursor:pointer}
+.deal-cards{padding:0 16px 16px;display:flex;flex-direction:column;gap:10px}
+.deal-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;cursor:pointer;transition:all 0.2s;display:flex;gap:12px}
+.deal-card:hover{border-color:var(--brand);background:rgba(0,200,150,0.04)}
+.deal-emoji{width:50px;height:50px;background:var(--surface2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.deal-info{flex:1;min-width:0}
+.deal-name{font-family:var(--font-head);font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.deal-store{font-size:12px;color:var(--text2);margin-bottom:6px}
+.deal-meta{display:flex;align-items:center;gap:8px}
+.deal-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:0.4px}
+.tag-red{background:rgba(255,71,87,0.15);color:var(--red)}
+.tag-green{background:rgba(0,200,150,0.15);color:var(--brand)}
+.tag-amber{background:rgba(255,165,2,0.15);color:var(--amber)}
+.deal-dist{font-size:11px;color:var(--text3)}
+.deal-right{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;flex-shrink:0}
+.deal-price{font-family:var(--font-head);font-size:17px;font-weight:700;color:var(--brand)}
+.deal-orig{font-size:11px;color:var(--text3);text-decoration:line-through}
+.deal-countdown{font-size:10px;font-weight:600;color:var(--red)}
+.deal-countdown.new{color:var(--brand)}
+
+/* ── DEAL DETAIL / BARGAIN ── */
+.detail-screen{display:none;position:absolute;inset:0;background:var(--bg);z-index:200;flex-direction:column;overflow-y:auto}
+.detail-screen.open{display:flex}
+.detail-hero{background:var(--surface);padding:20px 16px 0;position:relative}
+.back-btn{width:36px;height:36px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:16px}
+.back-btn svg{width:18px;height:18px;stroke:var(--text);fill:none;stroke-width:2}
+.hero-emoji{font-size:48px;margin-bottom:12px}
+.hero-title{font-family:var(--font-head);font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px}
+.hero-store{font-size:13px;color:var(--text2);margin-bottom:16px}
+.hero-price-row{display:flex;align-items:baseline;gap:10px;margin-bottom:16px}
+.hero-price{font-family:var(--font-head);font-size:32px;font-weight:700;color:var(--brand)}
+.hero-orig{font-size:18px;color:var(--text3);text-decoration:line-through}
+.hero-disc{background:rgba(255,71,87,0.15);color:var(--red);font-size:12px;font-weight:700;padding:3px 10px;border-radius:8px;font-family:var(--font-head)}
+.detail-tabs{display:flex;border-top:1px solid var(--border);margin-top:4px}
+.detail-tab{flex:1;padding:12px 0;text-align:center;font-size:13px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s}
+.detail-tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+.detail-body{padding:16px;flex:1}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.info-tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.info-tile-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;font-weight:500}
+.info-tile-val{font-size:15px;font-weight:600;color:var(--text);font-family:var(--font-head)}
+.ai-banner{background:linear-gradient(135deg,rgba(0,200,150,0.12),rgba(0,200,150,0.05));border:1px solid rgba(0,200,150,0.25);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px;display:flex;gap:10px}
+.ai-icon{font-size:16px;margin-top:1px;flex-shrink:0}
+.ai-text{font-size:13px;color:var(--text2);line-height:1.5}
+.ai-text strong{color:var(--brand);font-weight:600}
+.bargain-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.bargain-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.bargain-header span{font-size:13px;font-weight:600;color:var(--text);font-family:var(--font-head)}
+.live-badge{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:var(--brand);text-transform:uppercase;letter-spacing:0.5px}
+.live-badge::before{content:'';width:6px;height:6px;background:var(--brand);border-radius:50%;animation:blink 1s ease-in-out infinite}
+.chat-area{padding:14px;display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto;min-height:100px}
+.chat-area::-webkit-scrollbar{width:3px}
+.chat-area::-webkit-scrollbar-track{background:transparent}
+.chat-area::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.msg-wrap{display:flex;flex-direction:column}
+.msg-wrap.user{align-items:flex-end}
+.msg-wrap.bot{align-items:flex-start}
+.msg-bubble{padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.5;max-width:82%}
+.msg-wrap.user .msg-bubble{background:var(--brand);color:#fff;border-bottom-right-radius:4px}
+.msg-wrap.bot .msg-bubble{background:var(--surface2);color:var(--text);border-bottom-left-radius:4px;border:1px solid var(--border)}
+.msg-time{font-size:10px;color:var(--text3);margin-top:3px;padding:0 2px}
+.msg-system{text-align:center;font-size:11px;color:var(--text3);padding:4px 0}
+.offer-input-row{padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center}
+.rupee-input{display:flex;align-items:center;flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;overflow:hidden}
+.rupee-input span{padding:0 10px;font-size:16px;color:var(--text2);font-weight:500}
+.rupee-input input{flex:1;background:none;border:none;color:var(--text);font-family:var(--font-head);font-size:16px;font-weight:600;padding:10px 10px 10px 0;outline:none}
+.send-btn{width:44px;height:44px;background:var(--brand);border:none;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;flex-shrink:0}
+.send-btn:hover{background:var(--brand-dark)}
+.send-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2}
+.quick-offers{padding:0 12px 12px;display:flex;gap:6px}
+.quick-pill{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border2);color:var(--text2);cursor:pointer;background:var(--surface2);transition:all 0.2s;font-family:var(--font-head)}
+.quick-pill:hover{border-color:var(--brand);color:var(--brand)}
+.typing-indicator{display:flex;align-items:center;gap:4px;padding:9px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:4px;width:fit-content}
+.typing-dot{width:6px;height:6px;background:var(--text3);border-radius:50%;animation:typingBounce 1.2s ease-in-out infinite}
+.typing-dot:nth-child(2){animation-delay:0.2s}
+.typing-dot:nth-child(3){animation-delay:0.4s}
+@keyframes typingBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+/* ── RETAILER DASHBOARD ── */
+.retailer-top{padding:20px 16px 16px;background:var(--surface);border-bottom:1px solid var(--border)}
+.retailer-greeting{font-size:13px;color:var(--text2);margin-bottom:2px}
+.retailer-name{font-family:var(--font-head);font-size:20px;font-weight:700;color:var(--text)}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.stat-tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center}
+.stat-num{font-family:var(--font-head);font-size:22px;font-weight:700;color:var(--text)}
+.stat-label{font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:0.4px}
+.offers-section{padding:14px 16px}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-head h3{font-family:var(--font-head);font-size:15px;font-weight:600;color:var(--text)}
+.pending-badge{background:rgba(255,71,87,0.15);color:var(--red);font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px}
+.offer-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px;transition:border-color 0.2s}
+.offer-card:hover{border-color:var(--border2)}
+.offer-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.offer-product-name{font-family:var(--font-head);font-size:14px;font-weight:600;color:var(--text)}
+.offer-buyer{font-size:12px;color:var(--text2);margin-top:2px}
+.offer-prices{text-align:right}
+.offer-amount{font-family:var(--font-head);font-size:18px;font-weight:700;color:var(--text)}
+.offer-listed{font-size:11px;color:var(--text3);text-decoration:line-through}
+.offer-actions{display:flex;gap:8px}
+.act-btn{flex:1;padding:8px 0;border-radius:9px;font-family:var(--font-head);font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;letter-spacing:0.3px}
+.act-accept{background:rgba(0,200,150,0.15);color:var(--brand)}
+.act-accept:hover{background:rgba(0,200,150,0.25)}
+.act-reject{background:rgba(255,71,87,0.12);color:var(--red)}
+.act-reject:hover{background:rgba(255,71,87,0.2)}
+.act-counter{background:rgba(255,165,2,0.12);color:var(--amber)}
+.act-counter:hover{background:rgba(255,165,2,0.2)}
+.add-deal-section{padding:0 16px 24px}
+.add-deal-card{background:linear-gradient(135deg,rgba(0,200,150,0.12),rgba(0,200,150,0.03));border:1px dashed rgba(0,200,150,0.35);border-radius:var(--radius-lg);padding:20px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s}
+.add-deal-card:hover{border-color:var(--brand);background:rgba(0,200,150,0.1)}
+.add-icon{width:48px;height:48px;background:rgba(0,200,150,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.add-deal-text h4{font-family:var(--font-head);font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px}
+.add-deal-text p{font-size:12px;color:var(--text2)}
+
+/* ── ADD DEAL MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:var(--surface);border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:0;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;animation:slideUp 0.3s ease-out}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0}
+.modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-family:var(--font-head);font-size:17px;font-weight:600;color:var(--text)}
+.modal-close{width:30px;height:30px;background:var(--surface2);border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:16px}
+.modal-body{padding:20px}
+.select-input{width:100%;padding:12px 16px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:var(--font-body);font-size:15px;outline:none;appearance:none;cursor:pointer}
+.select-input:focus{border-color:var(--brand)}
+.price-row-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.submit-deal-btn{width:100%;padding:15px;background:var(--brand);color:#fff;border:none;border-radius:var(--radius);font-family:var(--font-head);font-size:16px;font-weight:600;cursor:pointer;margin-top:20px;transition:all 0.2s;letter-spacing:0.3px}
+.submit-deal-btn:hover{background:var(--brand-dark)}
+
+/* ── NOTIFICATIONS SCREEN ── */
+.notif-header{padding:20px 16px 14px;border-bottom:1px solid var(--border)}
+.notif-header h2{font-family:var(--font-head);font-size:20px;font-weight:700;color:var(--text)}
+.notif-list{padding:12px 16px;display:flex;flex-direction:column;gap:8px}
+.notif-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;display:flex;gap:12px;align-items:flex-start}
+.notif-item.unread{border-color:rgba(0,200,150,0.25);background:rgba(0,200,150,0.04)}
+.notif-emoji{font-size:22px;flex-shrink:0;margin-top:2px}
+.notif-content h4{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px;font-family:var(--font-head)}
+.notif-content p{font-size:12px;color:var(--text2);line-height:1.4}
+.notif-time{font-size:10px;color:var(--text3);margin-top:4px}
+.unread-dot{width:8px;height:8px;background:var(--brand);border-radius:50%;margin-left:auto;flex-shrink:0;margin-top:4px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--brand);border-radius:12px;padding:10px 18px;font-size:13px;font-weight:500;color:var(--text);z-index:1000;opacity:0;transition:all 0.3s;white-space:nowrap;pointer-events:none;font-family:var(--font-head)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── SCROLLBARS ── */
+.screen::-webkit-scrollbar{width:3px}
+.screen::-webkit-scrollbar-track{background:transparent}
+.screen::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════ AUTH SCREEN ════════════════════ -->
+<div id="authScreen" class="auth-bg">
+  <div class="auth-map-mockup">
+    <div class="splash-pin" style="top:15%;left:20%;width:48px;height:48px;background:var(--red);font-size:20px">🍞</div>
+    <div class="splash-pin" style="top:30%;left:65%;width:44px;height:44px;background:#1A7A4A;font-size:18px;animation-delay:0.5s">👕</div>
+    <div class="splash-pin" style="top:52%;left:38%;width:46px;height:46px;background:#B37400;font-size:19px;animation-delay:1s">🎧</div>
+    <div class="splash-pin" style="top:20%;left:78%;width:40px;height:40px;background:var(--red);font-size:16px;animation-delay:0.3s">🥦</div>
+    <div class="splash-pin" style="top:65%;left:75%;width:44px;height:44px;background:#1A7A4A;font-size:18px;animation-delay:0.8s">🌾</div>
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:2">
+      <div style="font-family:var(--font-head);font-size:36px;font-weight:700;color:#fff;text-shadow:0 2px 20px rgba(0,0,0,0.6)">DealDrop <span style="color:var(--brand)">AI</span></div>
+      <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-top:6px">Hyperlocal flash deals near you</div>
+    </div>
+    <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,14,26,0.3) 0%,rgba(10,14,26,0.85) 100%)"></div>
+  </div>
+  <div class="auth-card">
+    <div class="auth-logo">DealDrop <span>AI</span></div>
+    <div class="auth-sub">Discover flash deals. Bargain smart.</div>
+    <div class="tab-row">
+      <button class="tab-btn active" id="loginTab" onclick="switchAuthTab('login')">Sign in</button>
+      <button class="tab-btn" id="signupTab" onclick="switchAuthTab('signup')">Sign up</button>
+    </div>
+    <div id="loginForm">
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="you@example.com" id="loginEmail"/></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" placeholder="Enter password" id="loginPass"/></div>
+      <button class="btn-primary" onclick="doLogin()">Sign in →</button>
+      <div class="auth-divider">or</div>
+      <button class="btn-outline" onclick="doLogin()">Continue as guest</button>
+    </div>
+    <div id="signupForm" style="display:none">
+      <div class="form-group"><label class="form-label">Full name</label><input class="form-input" type="text" placeholder="Your name"/></div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="you@example.com"/></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" placeholder="Create password"/></div>
+      <div class="form-group"><label class="form-label">I am a...</label>
+        <div class="role-select">
+          <button class="role-btn active" onclick="selectRole(this)"><span class="role-icon">🛍️</span>Customer</button>
+          <button class="role-btn" onclick="selectRole(this)"><span class="role-icon">🏪</span>Retailer</button>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Create account →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ MAIN APP ════════════════════ -->
+<div id="mainApp" class="app-shell" style="display:none">
+
+  <!-- MAP SCREEN -->
+  <div class="screen active" id="scr-map">
+    <div class="map-header">
+      <div class="map-header-row">
+        <div class="loc-pill"><div class="loc-dot"></div>Tambaram, Chennai</div>
+        <div class="notif-btn" onclick="switchScreen('notif')"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><div class="dot"></div></div>
+      </div>
+      <div class="filter-scroll">
+        <div class="chip active">All</div>
+        <div class="chip">🍔 Food</div>
+        <div class="chip">👕 Clothes</div>
+        <div class="chip">🎧 Electronics</div>
+        <div class="chip">🛒 Grocery</div>
+        <div class="chip">💊 Pharma</div>
+      </div>
+    </div>
+    <div class="map-canvas">
+      <div class="map-road-h" style="top:28%"></div><div class="map-road-h" style="top:56%"></div><div class="map-road-h" style="top:82%"></div>
+      <div class="map-road-v" style="left:22%"></div><div class="map-road-v" style="left:50%"></div><div class="map-road-v" style="left:76%"></div>
+      <div class="map-block" style="top:5%;left:5%;width:14%;height:20%"></div>
+      <div class="map-block" style="top:5%;left:28%;width:18%;height:20%"></div>
+      <div class="map-block" style="top:5%;left:55%;width:17%;height:20%"></div>
+      <div class="map-block" style="top:34%;left:5%;width:12%;height:18%"></div>
+      <div class="map-block" style="top:62%;left:28%;width:18%;height:16%"></div>
+      <div class="map-block" style="top:34%;left:55%;width:18%;height:18%"></div>
+      <div class="map-block" style="top:34%;left:80%;width:16%;height:16%"></div>
+
+      <div class="map-pin red" style="top:10%;left:10%" onclick="openDeal(0)">🍞<div class="pin-tooltip">₹25</div></div>
+      <div class="map-pin green" style="top:36%;left:62%" onclick="openDeal(1)">👕<div class="pin-tooltip">₹299</div></div>
+      <div class="map-pin amber" style="top:60%;left:30%" onclick="openDeal(2)">🎧<div class="pin-tooltip">₹799</div></div>
+      <div class="map-pin red" style="top:8%;left:78%" onclick="openDeal(3)">🥦<div class="pin-tooltip">₹39</div></div>
+      <div class="map-pin green" style="top:70%;left:72%" onclick="openDeal(4)">🌾<div class="pin-tooltip">₹180</div></div>
+
+      <div class="you-dot"><div class="you-ring"></div><div class="you-core"></div></div>
+
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Expiring soon</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#1A7A4A"></div>New deal</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#B37400"></div>Ending today</div>
+      </div>
+    </div>
+    <div class="nearby-header"><h3>Nearby deals (12)</h3><span class="see-all">See all →</span></div>
+    <div class="deal-cards">
+      <div class="deal-card" onclick="openDeal(0)">
+        <div class="deal-emoji">🍞</div>
+        <div class="deal-info">
+          <div class="deal-name">Fresh Bread Loaves</div>
+          <div class="deal-store">Amma Bakery</div>
+          <div class="deal-meta"><span class="deal-tag tag-red">Food</span><span class="deal-dist">0.3 km · 4 min</span></div>
+        </div>
+        <div class="deal-right"><div class="deal-price">₹25</div><div class="deal-orig">₹60</div><div class="deal-countdown">⏱ 2h left</div></div>
+      </div>
+      <div class="deal-card" onclick="openDeal(1)">
+        <div class="deal-emoji">👕</div>
+        <div class="deal-info">
+          <div class="deal-name">Men's Casual Shirt</div>
+          <div class="deal-store">Style Hub</div>
+          <div class="deal-meta"><span class="deal-tag tag-green">Clothes</span><span class="deal-dist">0.8 km · 10 min</span></div>
+        </div>
+        <div class="deal-right"><div class="deal-price">₹299</div><div class="deal-orig">₹799</div><div class="deal-countdown new">✦ New</div></div>
+      </div>
+      <div class="deal-card" onclick="openDeal(2)">
+        <div class="deal-emoji">🎧</div>
+        <div class="deal-info">
+          <div class="deal-name">Wireless Earbuds</div>
+          <div class="deal-store">TechZone</div>
+          <div class="deal-meta"><span class="deal-tag tag-amber">Electronics</span><span class="deal-dist">1.1 km · 14 min</span></div>
+        </div>
+        <div class="deal-right"><div class="deal-price">₹799</div><div class="deal-orig">₹1999</div><div class="deal-countdown" style="color:var(--amber)">⏱ 5h left</div></div>
+      </div>
+      <div class="deal-card" onclick="openDeal(3)">
+        <div class="deal-emoji">🥦</div>
+        <div class="deal-info">
+          <div class="deal-name">Mixed Vegetables</div>
+          <div class="deal-store">Green Mart</div>
+          <div class="deal-meta"><span class="deal-tag tag-red">Grocery</span><span class="deal-dist">1.4 km · 18 min</span></div>
+        </div>
+        <div class="deal-right"><div class="deal-price">₹39</div><div class="deal-orig">₹80</div><div class="deal-countdown">⏱ 1h left</div></div>
+      </div>
+      <div class="deal-card" onclick="openDeal(4)">
+        <div class="deal-emoji">🌾</div>
+        <div class="deal-info">
+          <div class="deal-name">Rice (5kg)</div>
+          <div class="deal-store">Sri Store</div>
+          <div class="deal-meta"><span class="deal-tag tag-green">Grocery</span><span class="deal-dist">1.9 km · 24 min</span></div>
+        </div>
+        <div class="deal-right"><div class="deal-price">₹180</div><div class="deal-orig">₹320</div><div class="deal-countdown new">✦ New</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RETAILER SCREEN -->
+  <div class="screen" id="scr-retailer">
+    <div class="retailer-top">
+      <div class="retailer-greeting">Good afternoon,</div>
+      <div class="retailer-name">Amma Bakery 🏪</div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-tile"><div class="stat-num">5</div><div class="stat-label">Active deals</div></div>
+      <div class="stat-tile"><div class="stat-num" style="color:var(--red)">3</div><div class="stat-label">Pending offers</div></div>
+      <div class="stat-tile"><div class="stat-num" style="color:var(--brand)">₹840</div><div class="stat-label">Earned today</div></div>
+    </div>
+    <div class="offers-section">
+      <div class="section-head"><h3>Incoming offers</h3><span class="pending-badge">3 pending</span></div>
+      <div class="offer-card" id="oc1">
+        <div class="offer-card-top">
+          <div><div class="offer-product-name">Fresh Bread Loaves</div><div class="offer-buyer">Ravi K. · 0.3 km away</div></div>
+          <div class="offer-prices"><div class="offer-amount">₹20</div><div class="offer-listed">Listed ₹25</div></div>
+        </div>
+        <div class="offer-actions">
+          <button class="act-btn act-accept" onclick="handleOffer('oc1','accepted')">✓ Accept</button>
+          <button class="act-btn act-counter" onclick="handleOffer('oc1','counter')">↩ Counter</button>
+          <button class="act-btn act-reject" onclick="handleOffer('oc1','rejected')">✕ Reject</button>
+        </div>
+      </div>
+      <div class="offer-card" id="oc2">
+        <div class="offer-card-top">
+          <div><div class="offer-product-name">Veg Puffs (6pc)</div><div class="offer-buyer">Meera S. · 0.7 km away</div></div>
+          <div class="offer-prices"><div class="offer-amount">₹30</div><div class="offer-listed">Listed ₹45</div></div>
+        </div>
+        <div class="offer-actions">
+          <button class="act-btn act-accept" onclick="handleOffer('oc2','accepted')">✓ Accept</button>
+          <button class="act-btn act-counter" onclick="handleOffer('oc2','counter')">↩ Counter</button>
+          <button class="act-btn act-reject" onclick="handleOffer('oc2','rejected')">✕ Reject</button>
+        </div>
+      </div>
+      <div class="offer-card" id="oc3">
+        <div class="offer-card-top">
+          <div><div class="offer-product-name">Cake Slice</div><div class="offer-buyer">Arun M. · 1.2 km away</div></div>
+          <div class="offer-prices"><div class="offer-amount">₹55</div><div class="offer-listed">Listed ₹80</div></div>
+        </div>
+        <div class="offer-actions">
+          <button class="act-btn act-accept" onclick="handleOffer('oc3','accepted')">✓ Accept</button>
+          <button class="act-btn act-counter" onclick="handleOffer('oc3','counter')">↩ Counter</button>
+          <button class="act-btn act-reject" onclick="handleOffer('oc3','rejected')">✕ Reject</button>
+        </div>
+      </div>
+    </div>
+    <div class="add-deal-section">
+      <div class="add-deal-card" onclick="openAddDeal()">
+        <div class="add-icon">➕</div>
+        <div class="add-deal-text"><h4>Add new flash deal</h4><p>List overstock or near-expiry items instantly</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS SCREEN -->
+  <div class="screen" id="scr-notif">
+    <div class="notif-header"><h2>Notifications</h2></div>
+    <div class="notif-list">
+      <div class="notif-item unread">
+        <div class="notif-emoji">🎯</div>
+        <div class="notif-content"><h4>Offer accepted!</h4><p>TechZone accepted your ₹720 offer on Wireless Earbuds. Head over before 5 PM.</p><div class="notif-time">2 min ago</div></div>
+        <div class="unread-dot"></div>
+      </div>
+      <div class="notif-item unread">
+        <div class="notif-emoji">🔥</div>
+        <div class="notif-content"><h4>New deal 0.3 km away</h4><p>Amma Bakery just listed Fresh Bread Loaves at 58% off. Only 8 units left!</p><div class="notif-time">12 min ago</div></div>
+        <div class="unread-dot"></div>
+      </div>
+      <div class="notif-item unread">
+        <div class="notif-emoji">↩️</div>
+        <div class="notif-content"><h4>Counter offer received</h4><p>Style Hub countered your ₹250 offer with ₹275 on Men's Casual Shirt.</p><div class="notif-time">34 min ago</div></div>
+        <div class="unread-dot"></div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-emoji">⏱️</div>
+        <div class="notif-content"><h4>Deal expiring soon</h4><p>Mixed Vegetables at Green Mart expires in 1 hour. Grab it at ₹39!</p><div class="notif-time">1 hr ago</div></div>
+      </div>
+      <div class="notif-item">
+        <div class="notif-emoji">✅</div>
+        <div class="notif-content"><h4>Deal completed</h4><p>You saved ₹161 on Veg Biryani from Spice Garden. Great bargain!</p><div class="notif-time">Yesterday</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-map" onclick="switchScreen('map')">
+      <svg viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+      Map
+    </button>
+    <button class="nav-item" id="nav-retailer" onclick="switchScreen('retailer')">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Retailer
+    </button>
+    <button class="nav-item" id="nav-notif" onclick="switchScreen('notif')" style="position:relative">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <span class="nav-badge">3</span>
+      Alerts
+    </button>
+  </nav>
+</div>
+
+<!-- DEAL DETAIL + BARGAIN OVERLAY -->
+<div class="detail-screen" id="detailScreen">
+  <div class="detail-hero">
+    <div class="back-btn" onclick="closeDeal()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+    <div class="hero-emoji" id="d-emoji">🍞</div>
+    <div class="hero-title" id="d-title">Fresh Bread Loaves</div>
+    <div class="hero-store" id="d-store">Amma Bakery · 0.3 km</div>
+    <div class="hero-price-row">
+      <span class="hero-price" id="d-price">₹25</span>
+      <span class="hero-orig" id="d-orig">₹60</span>
+      <span class="hero-disc" id="d-disc">58% off</span>
+    </div>
+    <div class="detail-tabs">
+      <div class="detail-tab active" onclick="switchDetailTab('info')">Info</div>
+      <div class="detail-tab" onclick="switchDetailTab('bargain')">Bargain 🤝</div>
+    </div>
+  </div>
+
+  <div class="detail-body">
+    <!-- INFO TAB -->
+    <div id="tab-info">
+      <div class="info-grid">
+        <div class="info-tile"><div class="info-tile-label">Status</div><div class="info-tile-val" id="d-status">⏱ 2h left</div></div>
+        <div class="info-tile"><div class="info-tile-label">Distance</div><div class="info-tile-val" id="d-dist">0.3 km</div></div>
+        <div class="info-tile"><div class="info-tile-label">Stock left</div><div class="info-tile-val">8 units</div></div>
+        <div class="info-tile"><div class="info-tile-label">Walk time</div><div class="info-tile-val" id="d-time">4 min</div></div>
+      </div>
+      <div class="ai-banner">
+        <div class="ai-icon">✦</div>
+        <div class="ai-text" id="d-ai-tip">AI tip loading...</div>
+      </div>
+      <button class="btn-primary" onclick="switchDetailTab('bargain')" style="font-size:14px;padding:13px">Start bargaining →</button>
+    </div>
+
+    <!-- BARGAIN TAB -->
+    <div id="tab-bargain" style="display:none">
+      <div class="ai-banner">
+        <div class="ai-icon">✦</div>
+        <div class="ai-text" id="b-ai-tip">AI suggestion loading...</div>
+      </div>
+      <div class="bargain-section">
+        <div class="bargain-header">
+          <span>Negotiation chat</span>
+          <div class="live-badge">Live</div>
+        </div>
+        <div class="chat-area" id="chatArea">
+          <div class="msg-system">Negotiation started · Real-time</div>
+          <div class="msg-wrap bot"><div class="msg-bubble" id="firstRetailerMsg">Hi! This item is listed at ₹25. Happy to hear your offer!</div><div class="msg-time">Just now</div></div>
+        </div>
+        <div class="quick-offers" id="quickOffers"></div>
+        <div class="offer-input-row">
+          <div class="rupee-input"><span>₹</span><input type="number" id="offerInput" placeholder="Your offer"/></div>
+          <button class="send-btn" onclick="sendOffer()"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD DEAL MODAL -->
+<div class="modal-overlay" id="addDealModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header"><h3>Add new flash deal</h3><button class="modal-close" onclick="closeAddDeal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Product name</label><input class="form-input" type="text" placeholder="e.g. Fresh Bread Loaves"/></div>
+      <div class="form-group"><label class="form-label">Category</label>
+        <select class="select-input"><option>🍔 Food</option><option>👕 Clothes</option><option>🎧 Electronics</option><option>🛒 Grocery</option><option>💊 Pharma</option></select>
+      </div>
+      <div class="price-row-inputs">
+        <div class="form-group"><label class="form-label">Original price (₹)</label><input class="form-input" type="number" placeholder="e.g. 200"/></div>
+        <div class="form-group"><label class="form-label">Sale price (₹)</label><input class="form-input" type="number" placeholder="e.g. 80"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Units in stock</label><input class="form-input" type="number" placeholder="e.g. 12"/></div>
+      <div class="form-group"><label class="form-label">Deal expires in</label>
+        <select class="select-input"><option>1 hour</option><option>2 hours</option><option>4 hours</option><option>End of day</option><option>Tomorrow</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Bargaining allowed?</label>
+        <select class="select-input"><option>Yes – open to offers</option><option>No – fixed price only</option></select>
+      </div>
+      <button class="submit-deal-btn" onclick="submitDeal()">Publish deal →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const deals = [
+  {emoji:'🍞',title:'Fresh Bread Loaves',store:'Amma Bakery',dist:'0.3 km',time:'4 min',price:25,orig:60,status:'⏱ 2h left',urgency:'expiring'},
+  {emoji:'👕',title:"Men's Casual Shirt",store:'Style Hub',dist:'0.8 km',time:'10 min',price:299,orig:799,status:'✦ New deal',urgency:'new'},
+  {emoji:'🎧',title:'Wireless Earbuds',store:'TechZone',dist:'1.1 km',time:'14 min',price:799,orig:1999,status:'⏱ 5h left',urgency:'today'},
+  {emoji:'🥦',title:'Mixed Vegetables',store:'Green Mart',dist:'1.4 km',time:'18 min',price:39,orig:80,status:'⏱ 1h left',urgency:'expiring'},
+  {emoji:'🌾',title:'Rice (5kg)',store:'Sri Store',dist:'1.9 km',time:'24 min',price:180,orig:320,status:'✦ New deal',urgency:'new'},
+];
+
+let currentDeal = null;
+let chatHistory = [];
+
+// ── AUTH ──
+function switchAuthTab(t) {
+  document.getElementById('loginTab').classList.toggle('active', t==='login');
+  document.getElementById('signupTab').classList.toggle('active', t==='signup');
+  document.getElementById('loginForm').style.display = t==='login' ? 'block' : 'none';
+  document.getElementById('signupForm').style.display = t==='signup' ? 'block' : 'none';
+}
+function selectRole(btn) {
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function doLogin() {
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+}
+
+// ── SCREEN NAV ──
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('scr-'+name).classList.add('active');
+  const btn = document.getElementById('nav-'+name);
+  if(btn) btn.classList.add('active');
+}
+
+// ── DEALS ──
+function openDeal(idx) {
+  currentDeal = deals[idx];
+  const d = currentDeal;
+  const disc = Math.round((1 - d.price/d.orig)*100);
+  document.getElementById('d-emoji').textContent = d.emoji;
+  document.getElementById('d-title').textContent = d.title;
+  document.getElementById('d-store').textContent = d.store + ' · ' + d.dist;
+  document.getElementById('d-price').textContent = '₹' + d.price;
+  document.getElementById('d-orig').textContent = '₹' + d.orig;
+  document.getElementById('d-disc').textContent = disc + '% off';
+  document.getElementById('d-status').textContent = d.status;
+  document.getElementById('d-dist').textContent = d.dist;
+  document.getElementById('d-time').textContent = d.time + ' walk';
+
+  const low = Math.round(d.price * 0.72);
+  const mid = Math.round(d.price * 0.83);
+  const urgencyMsg = d.urgency === 'expiring'
+    ? 'Expiring soon — retailer is likely motivated to sell. '
+    : d.urgency === 'new' ? 'Freshly listed — retailer may be less flexible right now. '
+    : 'Ending today — moderate negotiation chance. ';
+
+  document.getElementById('d-ai-tip').innerHTML = urgencyMsg + '<strong>Suggested offer: ₹' + mid + '</strong> (range ₹' + low + '–₹' + d.price + ')';
+  document.getElementById('b-ai-tip').innerHTML = '<strong>AI suggests ₹' + mid + '</strong> — ' + urgencyMsg.toLowerCase() + 'Start with ₹' + low + ' to give room to negotiate.';
+
+  document.getElementById('firstRetailerMsg').textContent = 'Hi! ' + d.title + ' is listed at ₹' + d.price + '. Happy to hear your offer!';
+
+  const qo = document.getElementById('quickOffers');
+  const q1 = Math.round(d.price*0.7), q2 = Math.round(d.price*0.8), q3 = Math.round(d.price*0.9);
+  qo.innerHTML = '<span style="font-size:11px;color:var(--text3);align-self:center">Quick:</span>' +
+    ['₹'+q1,'₹'+q2,'₹'+q3].map(p=>`<div class="quick-pill" onclick="setOffer('${p}')">${p}</div>`).join('');
+
+  chatHistory = [];
+  document.getElementById('chatArea').innerHTML = `
+    <div class="msg-system">Negotiation started · Real-time</div>
+    <div class="msg-wrap bot"><div class="msg-bubble">Hi! ${d.title} is listed at ₹${d.price}. Happy to hear your offer!</div><div class="msg-time">Just now</div></div>`;
+
+  switchDetailTab('info');
+  document.getElementById('detailScreen').classList.add('open');
+}
+
+function closeDeal() {
+  document.getElementById('detailScreen').classList.remove('open');
+}
+
+function switchDetailTab(t) {
+  document.querySelectorAll('.detail-tab').forEach((tab,i)=>{
+    tab.classList.toggle('active', (i===0&&t==='info')||(i===1&&t==='bargain'));
+  });
+  document.getElementById('tab-info').style.display = t==='info'?'block':'none';
+  document.getElementById('tab-bargain').style.display = t==='bargain'?'block':'none';
+}
+
+function setOffer(val) {
+  document.getElementById('offerInput').value = val.replace('₹','');
+}
+
+async function sendOffer() {
+  const inp = document.getElementById('offerInput');
+  const val = parseInt(inp.value);
+  if (!val || val <= 0) return;
+  const d = currentDeal;
+  inp.value = '';
+
+  const area = document.getElementById('chatArea');
+  const now = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+
+  area.innerHTML += `<div class="msg-wrap user"><div class="msg-bubble">My offer: ₹${val}</div><div class="msg-time">${now}</div></div>`;
+
+  const typingId = 'typing_' + Date.now();
+  area.innerHTML += `<div class="msg-wrap bot" id="${typingId}"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  area.scrollTop = area.scrollHeight;
+
+  chatHistory.push({role:'user', content:`I'm offering ₹${val} for ${d.title} listed at ₹${d.price}.`});
+
+  let reply = '';
+  try {
+    const systemPrompt = `You are a friendly Indian retailer named ${d.store} in Chennai. You have listed "${d.title}" at ₹${d.price} (originally ₹${d.orig}). The item has status: ${d.status}. You are negotiating with a customer who wants to buy your product. Respond naturally in 1-2 short sentences. If the offer is within 10% of your price, accept it warmly. If it's 10-25% below, counter with a mid-price. If it's more than 25% below, politely decline and suggest a better offer. Use ₹ symbol. Be friendly and conversational.`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:120,
+        system: systemPrompt,
+        messages: chatHistory
+      })
+    });
+    const data = await res.json();
+    reply = data.content?.[0]?.text || fallbackReply(val, d.price);
+    chatHistory.push({role:'assistant', content: reply});
+  } catch(e) {
+    reply = fallbackReply(val, d.price);
+  }
+
+  document.getElementById(typingId)?.remove();
+  area.innerHTML += `<div class="msg-wrap bot"><div class="msg-bubble">${reply}</div><div class="msg-time">${now}</div></div>`;
+  area.scrollTop = area.scrollHeight;
+}
+
+function fallbackReply(offer, listed) {
+  const ratio = offer / listed;
+  if (ratio >= 0.9) return `Deal! ₹${offer} accepted. Please collect within the hour! 🎉`;
+  if (ratio >= 0.78) { const c = Math.round(listed * 0.88); return `You're close! How about ₹${c}? That's the best I can do.`; }
+  return `That's quite low. The minimum I can go is ₹${Math.round(listed * 0.8)}. Can you meet me there?`;
+}
+
+// ── RETAILER ──
+function handleOffer(id, action) {
+  const card = document.getElementById(id);
+  const amount = card.querySelector('.offer-amount').textContent;
+  const listed = card.querySelector('.offer-listed').textContent.replace('Listed ','');
+  let msg = '';
+  if (action === 'accepted') { msg = `✓ Accepted at ${amount}`; card.style.borderColor='rgba(0,200,150,0.4)'; }
+  else if (action === 'rejected') { msg = `✕ Rejected`; card.style.borderColor='rgba(255,71,87,0.3)'; }
+  else { const c = Math.round(parseInt(amount.replace('₹',''))*1.1); msg = `↩ Countered at ₹${c}`; card.style.borderColor='rgba(255,165,2,0.4)'; }
+  card.querySelector('.offer-actions').innerHTML = `<div style="font-size:13px;font-weight:600;color:var(--text2);padding:6px 0">${msg}</div>`;
+  showToast(msg);
+}
+
+function openAddDeal() { document.getElementById('addDealModal').classList.add('open'); }
+function closeAddDeal() { document.getElementById('addDealModal').classList.remove('open'); }
+function submitDeal() {
+  closeAddDeal();
+  showToast('✦ Deal published! Going live on the map.');
+}
+
+// ── FILTERS ──
+document.querySelectorAll('.chip').forEach(c => {
+  c.addEventListener('click', function() {
+    document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ── OFFER INPUT ENTER KEY ──
+document.getElementById('offerInput')?.addEventListener('keydown', e => { if(e.key==='Enter') sendOffer(); });
+</script>
+</body>
+</html>
